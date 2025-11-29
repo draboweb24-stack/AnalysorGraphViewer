@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Analyse Graphique</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    canvas {
+      width: 100% !important;
+      max-width: 450px;
+      height: 350px !important;
+    }
+  </style>
+
+</head>
+<body>
+
+<h2>Votre graphique</h2>
+<canvas id="chart"></canvas>
+
+<script>
+//////////////////////////
+// 1. Lire l’UID depuis l’URL
+//////////////////////////
+const urlParams = new URLSearchParams(window.location.search);
+const UID = urlParams.get("uid");
+
+if (!UID) {
+  document.body.innerHTML = "<h3>Aucun UID fourni.</h3>";
+  throw new Error("UID manquant");
+}
+
+//////////////////////////
+// 2. Configuration Firebase (TA CONFIG)
+//////////////////////////
+const firebaseConfig = {
+  apiKey: "AIzaSyCWPEvqOMcKY-28m212V30uJGLpBHZZVZ4",
+  authDomain: "drabiss-digital.firebaseapp.com",
+  databaseURL: "https://drabiss-digital-default-rtdb.firebaseio.com",
+  projectId: "drabiss-digital",
+  storageBucket: "drabiss-digital.firebasestorage.app",
+  messagingSenderId: "980072379811",
+  appId: "1:980072379811:web:fa1919966df8959796d616"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+//////////////////////////
+// 3. Charger les valeurs de Firebase
+//////////////////////////
+firebase.database().ref("Users/" + UID + "/Values").on("value", snapshot => {
+
+  if (!snapshot.exists()) {
+    document.body.innerHTML = "<h3>Aucune donnée trouvée.</h3>";
+    return;
+  }
+
+  let labels = [];
+  let points = [];
+
+  snapshot.forEach(child => {
+    const data = child.val();
+    labels.push(data.Timestamp);
+    points.push(Number(data.Int_Value));
+  });
+
+  //////////////////////////
+  // 4. Construire le graphique
+  //////////////////////////
+  new Chart(document.getElementById("chart"), {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Analyse",
+        data: points,
+        borderWidth: 3,
+        borderColor: "blue"
+      }]
+    }
+  });
+
+});
+</script>
+</body>
+</html>
